@@ -103,3 +103,9 @@ body::before {
 .animate-in { animation: slideInUp 0.35s ease both; }
 .animate-left { animation: slideInLeft 0.3s ease both; }
 .float { animation: float 3s ease-in-out infinite; }
+
+/* Nav link hover */
+.nav-link:hover {
+  background: rgba(139,92,246,0.12) !important;
+  color: #fff !important;
+}
