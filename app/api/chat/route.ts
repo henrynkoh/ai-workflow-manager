@@ -15,7 +15,11 @@ function extractModifiedFiles(response: string): string[] {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { task, filePaths = [] } = body as { task: string; filePaths?: string[] };
+    const { task, filePaths = [], agent_id = 'user' } = body as {
+      task: string;
+      filePaths?: string[];
+      agent_id?: string;
+    };
 
     if (!task || typeof task !== 'string') {
       return Response.json(
@@ -33,8 +37,9 @@ export async function POST(request: NextRequest) {
     const memorySection = buildMemorySection(memory);
     const systemPrompt = buildSystemPrompt(contextPrefix, memorySection);
 
-    // Call Claude
-    const response = await sendToClaude(systemPrompt, task);
+    // Call Claude (prepend agent identity to task for context)
+    const agentTask = agent_id !== 'user' ? `[Agent: ${agent_id}]\n${task}` : task;
+    const response = await sendToClaude(systemPrompt, agentTask);
 
     // Extract MODIFIED_FILES if present
     const modifiedFiles = extractModifiedFiles(response);
@@ -44,6 +49,7 @@ export async function POST(request: NextRequest) {
         response,
         matchedManuals,
         modifiedFiles,
+        agent_id,
       },
       error: null,
     });
