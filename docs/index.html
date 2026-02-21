@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Workflow Manager — 4-System AI Taming Framework</title>
+  <meta name="description" content="Turn your LLM from a forgetful junior dev into a reliable AI teammate using manuals, memory, quality gates, and shortcuts." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sidebar-w: 260px;
+      --nav-h: 0px;
+      --bg: #0d1117;
+      --bg2: #161b22;
+      --bg3: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text2: #8b949e;
+      --text3: #6e7681;
+      --accent: #7c3aed;
+      --accent2: #a855f7;
+      --green: #3fb950;
+      --blue: #58a6ff;
+      --orange: #f78166;
+      --yellow: #e3b341;
+      --pink: #f471b5;
+      --cyan: #39d353;
+      --grad1: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
+      --grad2: linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── SIDEBAR ──────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-track { background: transparent; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .sidebar-brand {
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-brand .logo {
+      font-size: 20px;
+      font-weight: 800;
+      background: var(--grad1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+    .sidebar-brand .tagline {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .sidebar-version {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      color: var(--accent2);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+
+    nav {
+      padding: 12px 0;
+      flex: 1;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      padding: 8px 16px 4px;
+      margin-top: 8px;
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      font-size: 13px;
+      color: var(--text2);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s ease;
+      line-height: 1.4;
+    }
+    nav a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+      border-left-color: var(--border);
+    }
+    nav a.active {
+      color: var(--accent2);
+      background: rgba(124,58,237,0.1);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+    nav a .nav-icon { font-size: 14px; flex-shrink: 0; }
+    nav a .nav-badge {
+      margin-left: auto;
+      font-size: 10px;
+      background: rgba(124,58,237,0.2);
+      color: var(--accent2);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sidebar-footer a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .sidebar-footer a:hover { color: var(--text); }
+
+    /* ── MAIN ─────────────────────────────────────── */
+    #main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ── SECTIONS ─────────────────────────────────── */
+    section {
+      padding: 80px 60px;
+      border-bottom: 1px solid var(--border);
+      scroll-margin-top: 20px;
+    }
+    section:last-child { border-bottom: none; }
+
+    /* ── HERO ─────────────────────────────────────── */
+    #hero {
+      background: var(--bg);
+      padding: 100px 60px 80px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-glow {
+      position: absolute;
+      top: -200px; left: -100px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-glow2 {
+      position: absolute;
+      top: -100px; right: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(236,72,153,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.35);
+      color: var(--accent2);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.6s ease both;
+    }
+    .hero-badge::before { content: '●'; color: var(--green); font-size: 8px; animation: pulse 2s infinite; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+    .hero-title {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.6s 0.1s ease both;
+    }
+    .hero-title .grad {
+      background: var(--grad1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--text2);
+      line-height: 1.6;
+      max-width: 600px;
+      margin-bottom: 36px;
+      animation: fadeInUp 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 48px;
+      animation: fadeInUp 0.6s 0.3s ease both;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--grad1);
+      color: white;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.35);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(124,58,237,0.5);
+    }
+    .btn-secondary {
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: var(--bg2);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      animation: fadeInUp 0.6s 0.4s ease both;
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .badge-pill span { font-weight: 600; color: var(--text); }
+
+    /* ── SECTION HEADERS ──────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(24px, 4vw, 40px);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 16px;
+      color: var(--text2);
+      line-height: 1.6;
+      max-width: 640px;
+      margin-bottom: 48px;
+    }
+
+    /* ── SYSTEM CARDS ─────────────────────────────── */
+    .systems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .system-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+    .system-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--card-color, var(--accent));
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+    .system-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--card-grad);
+    }
+    .system-card .card-num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--card-color);
+      margin-bottom: 12px;
+    }
+    .system-card .card-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .system-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .system-card p {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .system-card ul {
+      list-style: none;
+      space-y: 6px;
+    }
+    .system-card ul li {
+      font-size: 13px;
+      color: var(--text2);
+      padding: 4px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .system-card ul li::before {
+      content: '→';
+      color: var(--card-color);
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── FEATURE GRID ─────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+    .feature-card:hover {
+      border-color: rgba(124,58,237,0.4);
+      background: var(--bg3);
+      transform: translateY(-2px);
+    }
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+    .feature-card h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    /* ── CODE BLOCKS ──────────────────────────────── */
+    .code-window {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+    .code-header {
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .code-dots { display: flex; gap: 6px; }
+    .code-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .code-title {
+      font-size: 12px;
+      color: var(--text3);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .code-copy {
+      font-size: 11px;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      transition: all 0.15s;
+    }
+    .code-copy:hover { background: var(--bg); color: var(--text); }
+    .code-body {
+      padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .code-body .comment { color: #6e7681; }
+    .code-body .keyword { color: #ff7b72; }
+    .code-body .string { color: #a5d6ff; }
+    .code-body .fn { color: #d2a8ff; }
+    .code-body .num { color: #79c0ff; }
+    .code-body .var { color: #ffa657; }
+    .code-body .prompt { color: var(--green); font-weight: 600; }
+    .code-body .output { color: var(--text2); }
+
+    /* ── INSTALL STEPS ────────────────────────────── */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 32px 0;
+    }
+    .step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--grad1);
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-body h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .step-body p {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    /* ── MANUALS TABLE ────────────────────────────── */
+    .manuals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .manual-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      transition: all 0.2s;
+    }
+    .manual-card:hover {
+      border-color: rgba(124,58,237,0.4);
+      transform: translateY(-2px);
+    }
+    .manual-card .manual-icon { font-size: 24px; margin-bottom: 8px; }
+    .manual-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .manual-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .tag {
+      font-size: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--text3);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── SHORTCUTS ────────────────────────────────── */
+    .shortcuts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .shortcut-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+    .shortcut-card:hover {
+      border-color: rgba(124,58,237,0.5);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .shortcut-cmd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-bottom: 8px;
+    }
+    .shortcut-card p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+    /* ── QUALITY GATE ─────────────────────────────── */
+    .gate-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .gate-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      transition: all 0.2s;
+    }
+    .gate-item:hover { border-color: var(--green); }
+    .gate-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: rgba(63,185,80,0.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .gate-item span { font-size: 14px; font-weight: 500; }
+
+    /* ── API TABLE ────────────────────────────────── */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .api-table th {
+      background: var(--bg3);
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+    }
+    .api-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .api-table tr:last-child td { border-bottom: none; }
+    .api-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .method {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .method.get { background: rgba(63,185,80,0.15); color: var(--green); }
+    .method.post { background: rgba(88,166,255,0.15); color: var(--blue); }
+    .api-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    /* ── TECH STACK ───────────────────────────────── */
+    .stack-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .stack-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      transition: all 0.2s;
+    }
+    .stack-item:hover {
+      border-color: rgba(124,58,237,0.4);
+      transform: translateY(-2px);
+    }
+    .stack-icon { font-size: 22px; }
+    .stack-info {}
+    .stack-name { font-size: 13px; font-weight: 600; }
+    .stack-desc { font-size: 11px; color: var(--text3); }
+
+    /* ── FLOW DIAGRAM ─────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 32px 0;
+    }
+    .flow-step {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      text-align: center;
+      min-width: 140px;
+      transition: all 0.2s;
+    }
+    .flow-step:hover { border-color: var(--accent); transform: scale(1.02); }
+    .flow-step .f-icon { font-size: 24px; margin-bottom: 6px; }
+    .flow-step .f-label { font-size: 12px; font-weight: 600; }
+    .flow-step .f-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .flow-arrow {
+      font-size: 20px;
+      color: var(--accent2);
+      padding: 0 8px;
+      flex-shrink: 0;
+    }
+
+    /* ── CTA SECTION ──────────────────────────────── */
+    #cta {
+      background: var(--bg2);
+      text-align: center;
+      padding: 80px 60px;
+    }
+    .cta-inner {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ── FLOATING GITHUB BUTTON ───────────────────── */
+    #gh-float {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #24292f;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+    }
+    #gh-float:hover {
+      background: var(--border);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    #gh-float svg { width: 18px; height: 18px; fill: var(--text); flex-shrink: 0; }
+    #gh-float .star-count {
+      background: rgba(255,255,255,0.1);
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+
+    /* ── DIVIDER ──────────────────────────────────── */
+    .divider {
+      width: 48px;
+      height: 3px;
+      background: var(--grad1);
+      border-radius: 2px;
+      margin: 16px 0 32px;
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────── */
+    @media (max-width: 900px) {
+      #sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+      #sidebar.open { transform: translateX(0); }
+      #main { margin-left: 0; }
+      section { padding: 60px 24px; }
+      #hero { padding: 80px 24px 60px; }
+      #cta { padding: 60px 24px; }
+      .menu-btn {
+        display: flex !important;
+        position: fixed;
+        top: 16px; left: 16px;
+        z-index: 150;
+        width: 40px; height: 40px;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 18px;
+      }
+    }
+    .menu-btn { display: none; }
+
+    /* ── ANIMATIONS ───────────────────────────────── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── DEMO TERMINAL ────────────────────────────── */
+    .terminal {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+    .terminal-header {
+      background: var(--bg2);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-dots { display: flex; gap: 6px; }
+    .terminal-title { font-size: 12px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-left: 8px; }
+    .terminal-body {
+      padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .t-prompt { color: var(--green); }
+    .t-cmd { color: var(--text); }
+    .t-out { color: var(--text2); }
+    .t-matched { color: #ffa657; font-weight: 600; }
+    .t-section { color: var(--accent2); }
+    .t-blank { height: 8px; }
+  </style>
+</head>
+<body>
+
+<!-- Mobile menu button -->
+<button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Menu">☰</button>
+
+<!-- ── SIDEBAR ──────────────────────────────────── -->
+<aside id="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">🤖 AI Workflow<br>Manager</div>
+    <div class="tagline">4-System AI Taming Framework</div>
+    <div class="sidebar-version">● v1.0 · Open Source</div>
+  </div>
+
+  <nav id="nav">
+    <div class="nav-section-label">Overview</div>
+    <a href="#hero" class="active"><span class="nav-icon">🏠</span> Home</a>
+    <a href="#problem"><span class="nav-icon">⚠️</span> The Problem</a>
+    <a href="#systems"><span class="nav-icon">🔧</span> 4 Systems <span class="nav-badge">Core</span></a>
+
+    <div class="nav-section-label">Features</div>
+    <a href="#manuals"><span class="nav-icon">📚</span> Manuals</a>
+    <a href="#memory"><span class="nav-icon">🧠</span> Memory</a>
+    <a href="#quality"><span class="nav-icon">✅</span> Quality Gates</a>
+    <a href="#shortcuts"><span class="nav-icon">⚡</span> Shortcuts</a>
+
+    <div class="nav-section-label">Developer</div>
+    <a href="#quickstart"><span class="nav-icon">🚀</span> Quick Start</a>
+    <a href="#flow"><span class="nav-icon">🔄</span> How It Works</a>
+    <a href="#api"><span class="nav-icon">🔌</span> API Reference</a>
+    <a href="#cli"><span class="nav-icon">💻</span> CLI Tool</a>
+    <a href="#stack"><span class="nav-icon">🛠️</span> Tech Stack</a>
+
+    <div class="nav-section-label">Resources</div>
+    <a href="#custom"><span class="nav-icon">✏️</span> Customization</a>
+    <a href="#cta"><span class="nav-icon">⭐</span> Get Started</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="https://github.com/henrynkoh/ai-workflow-manager" target="_blank">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub Repository
+    </a>
+    <a href="MANUAL.html" target="_blank">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Full Manual
+    </a>
+    <a href="TUTORIAL.html" target="_blank">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Tutorial
+    </a>
+  </div>
+</aside>
+
+<!-- ── MAIN CONTENT ──────────────────────────────── -->
+<main id="main">
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-glow2"></div>
+    <div class="hero-badge">Open Source · MIT License · Free Forever</div>
+    <h1 class="hero-title">
+      Your AI coding assistant,<br>
+      <span class="grad">finally consistent.</span>
+    </h1>
+    <p class="hero-sub">
+      AI Workflow Manager wraps Claude with 4 external systems — manuals, memory, quality gates, and shortcuts — so it follows your rules every single session.
+    </p>
+    <div class="hero-actions">
+      <a href="https://github.com/henrynkoh/ai-workflow-manager" class="btn btn-primary" target="_blank">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+      <a href="#quickstart" class="btn btn-secondary">🚀 Quick Start →</a>
+      <a href="TUTORIAL.html" class="btn btn-secondary" target="_blank">📖 Tutorials</a>
+    </div>
+    <div class="hero-badges">
+      <div class="badge-pill">⚡ <span>Next.js 14</span></div>
+      <div class="badge-pill">🔷 <span>TypeScript</span></div>
+      <div class="badge-pill">🎨 <span>Tailwind CSS</span></div>
+      <div class="badge-pill">🤖 <span>Claude Sonnet 4.6</span></div>
+      <div class="badge-pill">⭐ <span>MIT License</span></div>
+    </div>
+  </section>
+
+  <!-- THE PROBLEM -->
+  <section id="problem" class="fade-in">
+    <div class="section-label">The Problem</div>
+    <h2 class="section-title">Why AI coding assistants keep failing you</h2>
+    <div class="divider"></div>
+    <p class="section-desc">You've told your AI the rules a hundred times. It still forgets them the moment you start a new session. This isn't a bug — it's how LLMs work.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div style="background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:24px;">
+        <div style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:16px;letter-spacing:0.06em;">❌ WITHOUT AI WORKFLOW MANAGER</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:#f87171">✗</span> Repeats "add error handling" every single session</li>
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:#f87171">✗</span> Security rules forgotten after every break</li>
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:#f87171">✗</span> No record of which files were changed</li>
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:#f87171">✗</span> Starts from scratch with zero project context</li>
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:#f87171">✗</span> Inconsistent code quality across sessions</li>
+        </ul>
+      </div>
+      <div style="background:rgba(63,185,80,0.05);border:1px solid rgba(63,185,80,0.2);border-radius:12px;padding:24px;">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:16px;letter-spacing:0.06em;">✅ WITH AI WORKFLOW MANAGER</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--green)">✓</span> Right manuals auto-injected per task keyword</li>
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--green)">✓</span> Security rules always applied for auth tasks</li>
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--green)">✓</span> MODIFIED_FILES logged on every response</li>
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--green)">✓</span> /continue loads full project memory instantly</li>
+          <li style="font-size:14px;color:var(--text2);display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--green)">✓</span> 7-point quality gate enforced every response</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 SYSTEMS -->
+  <section id="systems" class="fade-in">
+    <div class="section-label">Core Architecture</div>
+    <h2 class="section-title">The 4-System Framework</h2>
+    <div class="divider"></div>
+    <p class="section-desc">Four external systems that enforce consistency regardless of how many sessions you start or how long your context window runs.</p>
+
+    <div class="systems-grid">
+      <div class="system-card" style="--card-color:#a855f7;--card-grad:linear-gradient(90deg,#7c3aed,#a855f7)">
+        <div class="card-num">System 01</div>
+        <span class="card-icon">📚</span>
+        <h3>Manuals</h3>
+        <p>Rule files stored as markdown, auto-injected into every Claude prompt based on keyword detection. No config needed.</p>
+        <ul>
+          <li>Keyword → manual mapping in toc.md</li>
+          <li>Up to 3 manuals per request</li>
+          <li>5 built-in + unlimited custom</li>
+          <li>Live reload — no restart needed</li>
+        </ul>
+      </div>
+      <div class="system-card" style="--card-color:#3b82f6;--card-grad:linear-gradient(90deg,#1d4ed8,#3b82f6)">
+        <div class="card-num">System 02</div>
+        <span class="card-icon">🧠</span>
+        <h3>Memory</h3>
+        <p>Three persistent markdown files Claude reads on every request — project plan, notes, and task checklist.</p>
+        <ul>
+          <li>Survives page refresh & new sessions</li>
+          <li>Editable in browser or directly</li>
+          <li>/continue resumes last task</li>
+          <li>Accumulates over time</li>
+        </ul>
+      </div>
+      <div class="system-card" style="--card-color:#22c55e;--card-grad:linear-gradient(90deg,#16a34a,#22c55e)">
+        <div class="card-num">System 03</div>
+        <span class="card-icon">✅</span>
+        <h3>Quality Gates</h3>
+        <p>Mandatory 7-point self-check appended to every system prompt. Claude checks its own work before responding.</p>
+        <ul>
+          <li>Error handling check</li>
+          <li>Type safety verification</li>
+          <li>Security scan</li>
+          <li>MODIFIED_FILES enforced</li>
+        </ul>
+      </div>
+      <div class="system-card" style="--card-color:#f59e0b;--card-grad:linear-gradient(90deg,#d97706,#f59e0b)">
+        <div class="card-num">System 04</div>
+        <span class="card-icon">⚡</span>
+        <h3>Shortcuts</h3>
+        <p>Four pre-built workflow templates that fill the chat with the right prompt for common development scenarios.</p>
+        <ul>
+          <li>/continue — resume with context</li>
+          <li>/plan — structure before coding</li>
+          <li>/review — post-task code review</li>
+          <li>/add-rule — evolve your standards</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANUALS -->
+  <section id="manuals" class="fade-in">
+    <div class="section-label">System 01</div>
+    <h2 class="section-title">Manuals — Auto Context Injection</h2>
+    <div class="divider"></div>
+    <p class="section-desc">Five built-in rule files covering every layer of the stack. Type a task — the right manuals are injected automatically.</p>
+
+    <div class="manuals-grid">
+      <div class="manual-card">
+        <div class="manual-icon">⚙️</div>
+        <h4>Backend Rules</h4>
+        <p style="font-size:12px;color:var(--text3);">API design, error handling, HTTP status codes, rate limiting</p>
+        <div class="manual-tags">
+          <span class="tag">api</span><span class="tag">route</span><span class="tag">endpoint</span><span class="tag">server</span><span class="tag">middleware</span>
+        </div>
+      </div>
+      <div class="manual-card">
+        <div class="manual-icon">🎨</div>
+        <h4>Frontend Rules</h4>
+        <p style="font-size:12px;color:var(--text3);">React patterns, TypeScript props, Tailwind, hooks, state</p>
+        <div class="manual-tags">
+          <span class="tag">react</span><span class="tag">component</span><span class="tag">tsx</span><span class="tag">hook</span><span class="tag">ui</span>
+        </div>
+      </div>
+      <div class="manual-card">
+        <div class="manual-icon">🔒</div>
+        <h4>Security Rules</h4>
+        <p style="font-size:12px;color:var(--text3);">JWT, bcrypt, SQL injection, XSS, CSRF protection</p>
+        <div class="manual-tags">
+          <span class="tag">auth</span><span class="tag">jwt</span><span class="tag">password</span><span class="tag">sql</span><span class="tag">token</span>
+        </div>
+      </div>
+      <div class="manual-card">
+        <div class="manual-icon">🗄️</div>
+        <h4>Database Rules</h4>
+        <p style="font-size:12px;color:var(--text3);">Prisma schema, query patterns, migrations, pagination</p>
+        <div class="manual-tags">
+          <span class="tag">prisma</span><span class="tag">sql</span><span class="tag">query</span><span class="tag">migration</span>
+        </div>
+      </div>
+      <div class="manual-card">
+        <div class="manual-icon">📐</div>
+        <h4>General Rules</h4>
+        <p style="font-size:12px;color:var(--text3);">Naming, git commits, code style, DRY principle</p>
+        <div class="manual-tags">
+          <span class="tag">naming</span><span class="tag">git</span><span class="tag">commit</span><span class="tag">style</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="terminal" style="margin-top:32px;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <div class="code-dot" style="background:#ff5f57"></div>
+          <div class="code-dot" style="background:#ffbd2e"></div>
+          <div class="code-dot" style="background:#28c840"></div>
+        </div>
+        <div class="terminal-title">Example: "Add user login endpoint"</div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-prompt">→ Task:</span> <span class="t-cmd">"Add user login endpoint"</span></div>
+        <div><span class="t-prompt">→ Files:</span> <span class="t-cmd">app/api/auth/login/route.ts</span></div>
+        <div class="t-blank"></div>
+        <div><span class="t-out">Keyword scan: </span><span class="t-matched">login, auth, endpoint, api, route</span></div>
+        <div><span class="t-out">Matched manuals: </span><span class="t-section">Backend Rules</span><span class="t-out">, </span><span class="t-section">Security Rules</span></div>
+        <div class="t-blank"></div>
+        <div><span class="t-out">System prompt = Role + </span><span class="t-section">[Backend Rules]</span><span class="t-out"> + </span><span class="t-section">[Security Rules]</span><span class="t-out"> + Memory + Quality Gate</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEMORY -->
+  <section id="memory" class="fade-in">
+    <div class="section-label">System 02</div>
+    <h2 class="section-title">Memory — Persistent Project Context</h2>
+    <div class="divider"></div>
+    <p class="section-desc">Three markdown files that Claude reads on every single request. Your project context survives every session, forever.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px;">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;border-top:3px solid #3b82f6;">
+        <div style="font-size:28px;margin-bottom:12px;">📋</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:8px;">project-plan.md</h4>
+        <p style="font-size:13px;color:var(--text2);line-height:1.6;">Project goals, tech stack decisions, architecture choices. Claude always knows what you're building and why.</p>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;border-top:3px solid #a855f7;">
+        <div style="font-size:28px;margin-bottom:12px;">📝</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:8px;">context-notes.md</h4>
+        <p style="font-size:13px;color:var(--text2);line-height:1.6;">Running log of discoveries, gotchas, and decisions. Institutional knowledge that accumulates over every session.</p>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;border-top:3px solid #22c55e;">
+        <div style="font-size:28px;margin-bottom:12px;">✅</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:8px;">task-checklist.md</h4>
+        <p style="font-size:13px;color:var(--text2);line-height:1.6;">In progress, completed, and backlog tasks. Click /continue and Claude picks up exactly where you left off.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUALITY GATES -->
+  <section id="quality" class="fade-in">
+    <div class="section-label">System 03</div>
+    <h2 class="section-title">Quality Gates — Mandatory Self-Check</h2>
+    <div class="divider"></div>
+    <p class="section-desc">Seven quality criteria automatically appended to every system prompt. Claude checks its own work before finalizing any response.</p>
+
+    <div class="gate-list">
+      <div class="gate-item"><div class="gate-check">✓</div><span>Manual rule compliance</span></div>
+      <div class="gate-item"><div class="gate-check">✓</div><span>Error handling (try/catch)</span></div>
+      <div class="gate-item"><div class="gate-check">✓</div><span>TypeScript type safety (no any)</span></div>
+      <div class="gate-item"><div class="gate-check">✓</div><span>Security best practices</span></div>
+      <div class="gate-item"><div class="gate-check">✓</div><span>Input validation at API boundaries</span></div>
+      <div class="gate-item"><div class="gate-check">✓</div><span>Loading &amp; error states in UI</span></div>
+      <div class="gate-item"><div class="gate-check">✓</div><span>MODIFIED_FILES logged</span></div>
+    </div>
+
+    <div class="code-window" style="margin-top:28px;">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot" style="background:#ff5f57"></div>
+          <div class="code-dot" style="background:#ffbd2e"></div>
+          <div class="code-dot" style="background:#28c840"></div>
+        </div>
+        <span class="code-title">Every Claude response ends with this</span>
+      </div>
+      <div class="code-body">
+<span class="comment">// Auto-appended to every system prompt in lib/claudeClient.ts</span>
+
+<span class="var">QUALITY_GATE_RESULTS:</span>
+- Manual compliance:       <span style="color:var(--green)">PASS</span>
+- Error handling:          <span style="color:var(--green)">PASS</span>
+- Type safety:             <span style="color:var(--green)">PASS</span>
+- Security:                <span style="color:var(--green)">PASS</span>
+- Validation:              <span style="color:var(--green)">PASS</span>
+- Loading/Error states:    <span style="color:var(--text3)">N/A</span> (backend task)
+- MODIFIED_FILES logged:   <span style="color:var(--green)">PASS</span>
+
+<span class="var">MODIFIED_FILES:</span>
+- app/api/auth/login/route.ts
+- lib/auth.ts
+      </div>
+    </div>
+  </section>
+
+  <!-- SHORTCUTS -->
+  <section id="shortcuts" class="fade-in">
+    <div class="section-label">System 04</div>
+    <h2 class="section-title">Shortcuts — One-Click Workflows</h2>
+    <div class="divider"></div>
+    <p class="section-desc">Pre-built prompt templates for the most common AI-assisted development workflows.</p>
+
+    <div class="shortcuts-grid">
+      <div class="shortcut-card">
+        <div class="shortcut-cmd">/continue</div>
+        <p>Load all memory files and resume the next incomplete task from your checklist. Best after any session break.</p>
+      </div>
+      <div class="shortcut-card">
+        <div class="shortcut-cmd">/plan</div>
+        <p>Generate a structured implementation plan before writing any code — files, steps, edge cases, testing approach.</p>
+      </div>
+      <div class="shortcut-card">
+        <div class="shortcut-cmd">/review</div>
+        <p>Post-task code review against all matched manual rules. Outputs PASS/FAIL per check with specific fixes.</p>
+      </div>
+      <div class="shortcut-card">
+        <div class="shortcut-cmd">/add-rule</div>
+        <p>Add a new rule to the right manual permanently — with Good/Bad examples. Applies to all future requests.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK START -->
+  <section id="quickstart" class="fade-in">
+    <div class="section-label">Setup</div>
+    <h2 class="section-title">Quick Start — Live in 5 Minutes</h2>
+    <div class="divider"></div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Clone the repository</h4>
+          <p>Get the code from GitHub to your local machine.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Install dependencies</h4>
+          <p>Next.js, @anthropic-ai/sdk, Tailwind, react-markdown, and more.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Set your Anthropic API key</h4>
+          <p>Get a key at console.anthropic.com — free tier works for testing.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Start the dev server</h4>
+          <p>Open localhost:3000 and send your first task.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-window">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot" style="background:#ff5f57"></div>
+          <div class="code-dot" style="background:#ffbd2e"></div>
+          <div class="code-dot" style="background:#28c840"></div>
+        </div>
+        <span class="code-title">Terminal</span>
+        <button class="code-copy" onclick="copyCode(this, 'install')">Copy</button>
+      </div>
+      <div class="code-body" id="install">
+<span class="comment"># Clone the repository</span>
+<span class="prompt">$</span> git clone https://github.com/henrynkoh/ai-workflow-manager.git
+<span class="prompt">$</span> cd ai-workflow-manager
+
+<span class="comment"># Install dependencies</span>
+<span class="prompt">$</span> npm install
+
+<span class="comment"># Set your API key</span>
+<span class="prompt">$</span> echo "ANTHROPIC_API_KEY=sk-ant-your-key" > .env.local
+
+<span class="comment"># Start the development server</span>
+<span class="prompt">$</span> npm run dev
+
+<span class="output">▲ Next.js 16 (Turbopack)</span>
+<span class="output">✓ Ready in 1.5s → http://localhost:3000</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="flow" class="fade-in">
+    <div class="section-label">Architecture</div>
+    <h2 class="section-title">How It Works — Request Flow</h2>
+    <div class="divider"></div>
+    <p class="section-desc">Every chat request goes through a 5-stage pipeline before reaching Claude.</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="f-icon">💬</div>
+        <div class="f-label">User Task</div>
+        <div class="f-sub">+ file paths</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="f-icon">🔍</div>
+        <div class="f-label">Keyword Scan</div>
+        <div class="f-sub">toc.md matching</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="f-icon">📚</div>
+        <div class="f-label">Inject Manuals</div>
+        <div class="f-sub">top 1–3 matches</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="f-icon">🧠</div>
+        <div class="f-label">Load Memory</div>
+        <div class="f-sub">3 md files</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="f-icon">✅</div>
+        <div class="f-label">Add Quality Gate</div>
+        <div class="f-sub">7-point check</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="f-icon">🤖</div>
+        <div class="f-label">Claude API</div>
+        <div class="f-sub">Sonnet 4.6</div>
+      </div>
+    </div>
+
+    <div class="features-grid" style="margin-top:32px;">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h4>Fast Keyword Matching</h4>
+        <p>Simple string matching against toc.md — no embeddings or vector DB needed. Scores every manual, picks top 3.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📁</div>
+        <h4>File-Based Storage</h4>
+        <p>Memory files are plain markdown on disk. No database. Easy to edit, version control, and backup.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h4>Live Reload</h4>
+        <p>Add or edit manuals and memory files — changes take effect on the next request without restarting.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧩</div>
+        <h4>Modular Design</h4>
+        <p>contextInjector, memoryManager, and claudeClient are independent modules. Easy to swap or extend.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API REFERENCE -->
+  <section id="api" class="fade-in">
+    <div class="section-label">API</div>
+    <h2 class="section-title">API Reference</h2>
+    <div class="divider"></div>
+    <p class="section-desc">All endpoints return <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:13px;">{ data, error }</code> — consistent shape across the board.</p>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <table class="api-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Endpoint</th>
+            <th>Description</th>
+            <th>Body / Response</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="method post">POST</span></td>
+            <td class="api-path">/api/chat</td>
+            <td style="color:var(--text2);font-size:13px;">Full pipeline: context → memory → Claude</td>
+            <td style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;">{ task, filePaths? }</td>
+          </tr>
+          <tr>
+            <td><span class="method post">POST</span></td>
+            <td class="api-path">/api/context</td>
+            <td style="color:var(--text2);font-size:13px;">Keyword → manual matching only</td>
+            <td style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;">{ task, filePaths? }</td>
+          </tr>
+          <tr>
+            <td><span class="method get">GET</span></td>
+            <td class="api-path">/api/memory</td>
+            <td style="color:var(--text2);font-size:13px;">Load all 3 memory files</td>
+            <td style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;">→ { plan, notes, checklist }</td>
+          </tr>
+          <tr>
+            <td><span class="method post">POST</span></td>
+            <td class="api-path">/api/memory</td>
+            <td style="color:var(--text2);font-size:13px;">Save a memory file</td>
+            <td style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;">{ name, content }</td>
+          </tr>
+          <tr>
+            <td><span class="method get">GET</span></td>
+            <td class="api-path">/api/manuals</td>
+            <td style="color:var(--text2);font-size:13px;">List all manuals with content</td>
+            <td style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;">→ Manual[]</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CLI TOOL -->
+  <section id="cli" class="fade-in">
+    <div class="section-label">CLI</div>
+    <h2 class="section-title">CLI Tool — No UI Needed</h2>
+    <div class="divider"></div>
+    <p class="section-desc">The context injection engine runs standalone as a Node.js script. Use it in terminals, CI/CD pipelines, or other tools.</p>
+
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <div class="code-dot" style="background:#ff5f57"></div>
+          <div class="code-dot" style="background:#ffbd2e"></div>
+          <div class="code-dot" style="background:#28c840"></div>
+        </div>
+        <div class="terminal-title">scripts/inject-context.js</div>
+      </div>
+      <div class="terminal-body">
+<div><span class="t-prompt">$</span> <span class="t-cmd">node scripts/inject-context.js "Add user login endpoint" src/api/auth.ts</span></div>
+<div class="t-blank"></div>
+<div><span style="color:var(--accent2)">════════════════════════════════════════════════════</span></div>
+<div><span class="t-out">MATCHED MANUALS: </span><span class="t-matched">Backend Rules, Security Rules</span></div>
+<div><span style="color:var(--accent2)">════════════════════════════════════════════════════</span></div>
+<div class="t-blank"></div>
+<div><span class="t-section"># Injected Manuals</span></div>
+<div><span class="t-out">The following project manuals are relevant to this task:</span></div>
+<div class="t-blank"></div>
+<div><span class="t-section">## Backend Rules</span></div>
+<div><span class="t-out"># Backend Rules Manual</span></div>
+<div><span class="t-out">## API Route Design</span></div>
+<div><span class="t-out">1. Every API route must return { data, error, status }...</span></div>
+<div><span class="t-out">...</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:24px;">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.06em;margin-bottom:8px;">EXAMPLE 1</div>
+        <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent2);">node scripts/inject-context.js "fix react button" src/Button.tsx</code>
+        <div style="font-size:12px;color:var(--green);margin-top:6px;">→ Frontend Rules matched</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.06em;margin-bottom:8px;">EXAMPLE 2</div>
+        <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent2);">node scripts/inject-context.js "add prisma migration" schema.prisma</code>
+        <div style="font-size:12px;color:var(--green);margin-top:6px;">→ Database Rules matched</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section id="stack" class="fade-in">
+    <div class="section-label">Technology</div>
+    <h2 class="section-title">Tech Stack</h2>
+    <div class="divider"></div>
+
+    <div class="stack-grid">
+      <div class="stack-item">
+        <div class="stack-icon">▲</div>
+        <div class="stack-info"><div class="stack-name">Next.js 14</div><div class="stack-desc">App Router, TypeScript</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🔷</div>
+        <div class="stack-info"><div class="stack-name">TypeScript</div><div class="stack-desc">Full end-to-end types</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🎨</div>
+        <div class="stack-info"><div class="stack-name">Tailwind CSS</div><div class="stack-desc">Utility-first styling</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🤖</div>
+        <div class="stack-info"><div class="stack-name">@anthropic-ai/sdk</div><div class="stack-desc">Claude API client</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">📄</div>
+        <div class="stack-info"><div class="stack-name">gray-matter</div><div class="stack-desc">Markdown frontmatter</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">📝</div>
+        <div class="stack-info"><div class="stack-name">react-markdown</div><div class="stack-desc">Render manual content</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🔤</div>
+        <div class="stack-info"><div class="stack-name">@tailwindcss/typography</div><div class="stack-desc">Prose styles</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">📂</div>
+        <div class="stack-info"><div class="stack-name">fs/promises</div><div class="stack-desc">Memory file I/O</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUSTOMIZATION -->
+  <section id="custom" class="fade-in">
+    <div class="section-label">Extend It</div>
+    <h2 class="section-title">Add Your Own Rules</h2>
+    <div class="divider"></div>
+    <p class="section-desc">The system is designed to grow with your project. Add custom manuals in 2 steps — no restart needed.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div>
+        <h4 style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--accent2);">Step 1 — Create your rule file</h4>
+        <div class="code-window">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="code-dot" style="background:#ff5f57"></div>
+              <div class="code-dot" style="background:#ffbd2e"></div>
+              <div class="code-dot" style="background:#28c840"></div>
+            </div>
+            <span class="code-title">manuals/billing_rules.md</span>
+          </div>
+          <div class="code-body" style="font-size:12px;">
+<span class="comment"># Billing Rules Manual</span>
+
+<span class="comment">## Rules</span>
+<span class="num">1.</span> Always check subscription status
+   before premium actions
+<span class="num">2.</span> Never expose price IDs to frontend
+<span class="num">3.</span> Log all billing events with
+   userId and timestamp
+          </div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--accent2);">Step 2 — Register in toc.md</h4>
+        <div class="code-window">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="code-dot" style="background:#ff5f57"></div>
+              <div class="code-dot" style="background:#ffbd2e"></div>
+              <div class="code-dot" style="background:#28c840"></div>
+            </div>
+            <span class="code-title">manuals/toc.md</span>
+          </div>
+          <div class="code-body" style="font-size:12px;">
+<span class="comment">| manual | file | keywords |</span>
+<span class="comment">|--------|------|----------|</span>
+<span class="string">| Billing Rules</span> <span class="comment">|</span>
+  <span class="string">billing_rules.md</span> <span class="comment">|</span>
+  <span class="string">billing, stripe,
+  subscription, payment |</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding:12px 16px;background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.2);border-radius:8px;">
+          <div style="font-size:12px;color:var(--green);font-weight:600;">✓ Live immediately</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">No restart needed</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;padding:20px 24px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;">
+      <div style="font-size:14px;font-weight:600;color:var(--accent2);margin-bottom:8px;">💡 Or use the /add-rule shortcut</div>
+      <div style="font-size:13px;color:var(--text2);">Describe the rule in plain English in the chat → Claude writes it in the correct format and updates the manual file for you.</div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta">
+    <div class="cta-inner fade-in">
+      <div style="font-size:48px;margin-bottom:20px;">🚀</div>
+      <h2 style="font-size:36px;font-weight:900;letter-spacing:-0.02em;margin-bottom:16px;">Start building with a<br><span style="background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">reliable AI teammate</span></h2>
+      <p style="font-size:16px;color:var(--text2);line-height:1.6;margin-bottom:36px;">Free, open source, and running in 5 minutes. No SaaS, no subscriptions — just a better way to work with AI.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="https://github.com/henrynkoh/ai-workflow-manager" class="btn btn-primary" target="_blank">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          ⭐ Star on GitHub
+        </a>
+        <a href="#quickstart" class="btn btn-secondary">🚀 Quick Start</a>
+        <a href="MANUAL.html" class="btn btn-secondary" target="_blank">📖 Read the Manual</a>
+      </div>
+      <p style="margin-top:24px;font-size:12px;color:var(--text3);">MIT License · Free forever · No account needed</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── FLOATING GITHUB BUTTON ──────────────────── -->
+<a id="gh-float" href="https://github.com/henrynkoh/ai-workflow-manager" target="_blank">
+  <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+  GitHub
+  <span class="star-count">⭐ Star</span>
+</a>
+
+<script>
+  // ── Scrollspy ───────────────────────────────────
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a[href^="#"]');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (link) {
+          link.classList.add('active');
+          link.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    });
+  }, { threshold: 0.3, rootMargin: '-10% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // ── Fade-in on scroll ───────────────────────────
+  const fadeEls = document.querySelectorAll('.fade-in');
+  const fadeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  fadeEls.forEach(el => fadeObserver.observe(el));
+
+  // ── Copy code ───────────────────────────────────
+  function copyCode(btn, id) {
+    const el = document.getElementById(id);
+    const text = el ? el.innerText.replace(/^\$ /gm, '') : '';
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+
+  // ── Smooth nav links ────────────────────────────
+  navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const id = link.getAttribute('href').slice(1);
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      if (window.innerWidth <= 900) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    });
+  });
+</script>
+</body>
+</html>

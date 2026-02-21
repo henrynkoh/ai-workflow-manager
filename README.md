@@ -2,6 +2,8 @@
 
 > Turn your LLM from a forgetful junior dev into a reliable AI teammate — using external structure instead of hoping the model behaves.
 
+[![Landing Page](https://img.shields.io/badge/🌐_Landing_Page-View_Now-7c3aed?style=for-the-badge)](https://henrynkoh.github.io/ai-workflow-manager/)
+
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38bdf8?logo=tailwindcss)
