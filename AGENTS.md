@@ -1,102 +1,95 @@
-# Agent Team — Quick Start
+# Agent Team — Reference
 
-## THE ONE PROMPT (copy this every time)
+## CURSOR SETTINGS (set these once, never change)
 
 ```
-You are running a team of 4 agents. Read AGENTS.md first, then build what I ask.
-
-My request: [DESCRIBE WHAT YOU WANT HERE]
-
-Rules:
-- Plan first, code second
-- One agent at a time
-- Mark each task done before moving on
-- Commit when complete
+Model:  claude-sonnet-4-6
+Mode:   Agent
+Apply:  Auto
 ```
 
 ---
 
 ## THE 4 AGENTS
 
-| # | Agent | Does |
-|---|-------|------|
-| 1 | 🗂 Planner | Reads request → writes task list |
-| 2 | ⚙️ Backend | Builds API, database, server logic |
-| 3 | 🎨 Frontend | Builds UI, components, pages |
-| 4 | ✅ Reviewer | Checks everything before done |
+| # | Agent | Does | Touches |
+|---|-------|------|---------|
+| 1 | 🗂 Planner | Reads codebase, writes task list | tasks/todo.md only |
+| 2 | ⚙️ Backend | Builds API, database, server logic | app/api/**, lib/**, prisma/** |
+| 3 | 🎨 Frontend | Builds UI, components, pages | components/**, app/page.tsx |
+| 4 | ✅ Reviewer | Checks everything, commits to GitHub | Read-only + git |
 
 ---
 
-## HOW IT WORKS (3 steps)
+## TWO VERSIONS — pick one per session
 
-```
-Step 1 → You type what you want
-Step 2 → Planner breaks it into tasks
-Step 3 → Each agent does their part, one by one
-```
+### VERSION A — With approval pause
+Use for: new projects, big features, anything risky
+- Agent 1 writes the plan, then **STOPS**
+- You review the plan, type "continue" or "looks good"
+- Agents 2, 3, 4 run after your approval
 
-That's it.
+### VERSION B — Fully automatic
+Use for: bug fixes, small features, routine tasks
+- All 4 agents run **start to finish** without stopping
+- Cursor Agent + Auto mode handles everything
+- You come back to a finished, committed result
 
 ---
 
-## AGENT RULES (Claude follows these automatically)
+## HOW IT WORKS
+
+```
+You paste prompt → Agent 1 plans → Agent 2 builds backend
+→ Agent 3 builds frontend → Agent 4 reviews + commits
+```
+
+---
+
+## AGENT RULES (enforced automatically by the prompt)
 
 ### 🗂 Planner
-- First agent to run, always
-- Writes all tasks to tasks/todo.md
-- Does NOT write any code
-- Stops and waits after plan is written
+- Reads existing files before writing anything
+- Writes tasks/todo.md — never writes code
+- Version A: stops after plan. Version B: continues immediately.
 
-### ⚙️ Backend Agent
-- Only touches: app/api/, lib/, prisma/
-- Validates all input
-- Handles all errors
-- Never touches frontend files
+### ⚙️ Backend
+- ONLY touches: app/api/**, lib/**, prisma/**, scripts/**
+- NEVER touches: components/, page.tsx files
+- Validates all input with Zod
+- Every route returns `{ data, error }`
+- Every route has try/catch
 
-### 🎨 Frontend Agent
-- Only touches: components/, app/page.tsx
-- Always adds loading + error states
-- Matches what backend built
-- Never touches API files
+### 🎨 Frontend
+- ONLY touches: components/**, app/page.tsx, app/globals.css
+- NEVER touches: app/api/, lib/, prisma/
+- Always adds loading state
+- Always adds error state
+- Always mobile responsive
 
 ### ✅ Reviewer
-- Last agent to run, always
-- Checks: bugs, security, missing cases
-- Posts verdict: APPROVED or NEEDS CHANGES
+- Checks all modified files against quality checklist
+- Fixes any issues found
+- Marks all tasks complete in tasks/todo.md
+- Runs git add -A → commit → push
 
 ---
 
-## EXAMPLE
+## WHEN TO USE THE PROMPT
 
-**You type:**
-```
-You are running a team of 4 agents. Read AGENTS.md first, then build what I ask.
+| You want to... | Use prompt? | Version |
+|----------------|-------------|---------|
+| Build a new feature | Yes | A |
+| Fix a bug | Yes | B |
+| Build a new app | Yes | A |
+| Refactor code | Yes | A |
+| Ask what a file does | No | — |
+| Fix a typo | No | — |
 
-My request: Add a user login page with email and password
-
-Rules:
-- Plan first, code second
-- One agent at a time
-- Mark each task done before moving on
-- Commit when complete
-```
-
-**What happens automatically:**
-```
-🗂 Planner    → writes tasks/todo.md with 6 tasks
-⚙️ Backend    → builds POST /api/auth/login
-🎨 Frontend   → builds LoginPage component
-✅ Reviewer   → checks security, approves
-             → git commit + push
-```
+**Rule: if you are changing code → use the prompt**
 
 ---
 
-## SHORTCUT PROMPTS
+## FULL PROMPTS
 
-| What you want | What to type |
-|--------------|--------------|
-| Start fresh  | `/plan [your idea]` |
-| Keep going   | `/continue` |
-| Check work   | `/review` |
-| Add a rule   | `/add-rule [rule]` |
+See `START_HERE.md` for the complete copy-pastable prompts for both versions.

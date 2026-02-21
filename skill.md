@@ -1430,6 +1430,33 @@ curl -X POST localhost:3000/api/[route] -H "Content-Type: application/json" -d '
 
 ---
 
+## Agent Team — Cursor AI / Claude Code Setup
+
+### Cursor Settings (set once, never change)
+```
+Model:  claude-sonnet-4-6
+Mode:   Agent
+Apply:  Auto
+```
+
+### Which prompt to use
+| Situation | Version |
+|-----------|---------|
+| New project, big feature, risky change | Version A — pauses after plan for your approval |
+| Bug fix, small feature, routine task | Version B — runs fully automatic, no stops |
+
+### Version A — With approval pause
+Paste from `START_HERE.md` → fill in request → Agent 1 writes plan → you type "continue" → Agents 2-4 run.
+
+### Version B — Fully automatic
+Paste from `START_HERE.md` → fill in request → all 4 agents run → committed to GitHub → done.
+
+### When to use the prompt at all
+- **Changing or building code** → always use the prompt
+- **Asking a question or explaining code** → just type freely
+
+---
+
 ## Execution Checklist for Any Request
 
 When given a web/app development request, execute in this order:
