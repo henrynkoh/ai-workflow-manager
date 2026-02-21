@@ -3,23 +3,18 @@
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 
-interface MemoryFiles {
-  plan: string;
-  notes: string;
-  checklist: string;
-}
-
+interface MemoryFiles { plan: string; notes: string; checklist: string; }
 type MemoryTab = 'plan' | 'notes' | 'checklist';
 
-const TABS: { key: MemoryTab; label: string; file: string }[] = [
-  { key: 'plan', label: 'Project Plan', file: 'memory/project-plan.md' },
-  { key: 'notes', label: 'Context Notes', file: 'memory/context-notes.md' },
-  { key: 'checklist', label: 'Task Checklist', file: 'memory/task-checklist.md' },
+const TABS = [
+  { key: 'plan' as MemoryTab,      label: 'Project Plan',   emoji: '📋', file: 'memory/project-plan.md',   color: '#3b82f6', gradient: 'linear-gradient(135deg,#3b82f6,#06b6d4)' },
+  { key: 'notes' as MemoryTab,     label: 'Context Notes',  emoji: '📝', file: 'memory/context-notes.md',  color: '#8b5cf6', gradient: 'linear-gradient(135deg,#8b5cf6,#ec4899)' },
+  { key: 'checklist' as MemoryTab, label: 'Task Checklist', emoji: '✅', file: 'memory/task-checklist.md', color: '#10b981', gradient: 'linear-gradient(135deg,#10b981,#34d399)' },
 ];
 
 export default function MemoryPage() {
   const [memory, setMemory] = useState<MemoryFiles>({ plan: '', notes: '', checklist: '' });
-  const [activeTab, setActiveTab] = useState<MemoryTab>('plan');
+  const [activeTab, setActiveTab] = useState<MemoryTab>('checklist');
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
@@ -29,111 +24,114 @@ export default function MemoryPage() {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
-      const res = await fetch('/api/memory');
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      setMemory(json.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function startEdit() {
-    setEditContent(memory[activeTab]);
-    setEditing(true);
+      const r = await fetch('/api/memory');
+      const j = await r.json();
+      if (j.error) throw new Error(j.error);
+      setMemory(j.data);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Failed'); }
+    finally { setLoading(false); }
   }
 
   async function save() {
     setSaving(true);
     try {
-      const res = await fetch('/api/memory', {
+      const r = await fetch('/api/memory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: activeTab, content: editContent }),
       });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      const j = await r.json();
+      if (j.error) throw new Error(j.error);
       setMemory(prev => ({ ...prev, [activeTab]: editContent }));
       setEditing(false);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
-    } finally {
-      setSaving(false);
-    }
+    } catch (e) { alert(e instanceof Error ? e.message : 'Failed'); }
+    finally { setSaving(false); }
   }
 
-  const activeTabMeta = TABS.find(t => t.key === activeTab)!;
+  const tab = TABS.find(t => t.key === activeTab)!;
 
   return (
-    <div className="flex h-full">
-      {/* Sidebar */}
-      <aside className="w-56 bg-white border-r border-gray-200 p-4 shrink-0">
-        <h1 className="text-sm font-semibold text-gray-900 mb-4">Memory Files</h1>
-        <div className="space-y-1">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => { setActiveTab(tab.key); setEditing(false); }}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {tab.label}
+    <div className="flex h-full overflow-hidden">
+      {/* Left sidebar */}
+      <aside className="w-56 shrink-0 flex flex-col p-4"
+        style={{ background: 'rgba(10,14,26,0.7)', borderRight: '1px solid rgba(99,120,255,0.1)', backdropFilter: 'blur(20px)' }}>
+        <div className="flex items-center gap-2 mb-5">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
+            style={{ background: 'linear-gradient(135deg,#10b981,#34d399)' }}>🧠</div>
+          <span className="font-bold text-sm">Memory Files</span>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => { setActiveTab(t.key); setEditing(false); }}
+              className="w-full text-left px-3 py-3 rounded-xl text-sm transition-all duration-200"
+              style={{
+                background: activeTab === t.key ? `linear-gradient(135deg,${t.color}15,${t.color}08)` : 'transparent',
+                border: activeTab === t.key ? `1px solid ${t.color}35` : '1px solid transparent',
+                color: activeTab === t.key ? t.color : 'rgba(148,163,196,0.7)',
+                fontWeight: activeTab === t.key ? '600' : '400',
+              }}>
+              <div className="flex items-center gap-2">
+                <span>{t.emoji}</span>
+                <span>{t.label}</span>
+              </div>
+              <div className="text-xs mt-1 opacity-60 font-mono" style={{ fontSize: '10px' }}>{t.file}</div>
             </button>
           ))}
         </div>
-        <div className="mt-6 pt-4 border-t border-gray-100">
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Memory files are loaded into every Claude session as persistent context.
-          </p>
+
+        <div className="mt-auto pt-4">
+          <div className="rounded-xl p-3 text-xs leading-relaxed"
+            style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', color: 'rgba(148,163,196,0.7)' }}>
+            💡 Memory files are loaded into every Claude request as persistent context.
+          </div>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-white">
-        {/* Header */}
-        <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 shrink-0">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{activeTabMeta.label}</h2>
-            <p className="text-xs text-gray-400 font-mono mt-0.5">{activeTabMeta.file}</p>
+      <main className="flex-1 flex flex-col overflow-hidden" style={{ background: 'rgba(8,12,24,0.4)' }}>
+        {/* Header bar */}
+        <div className="flex items-center justify-between px-8 py-4 shrink-0"
+          style={{ borderBottom: '1px solid rgba(99,120,255,0.1)', background: 'rgba(10,14,26,0.5)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
+              style={{ background: tab.gradient, boxShadow: `0 4px 16px ${tab.color}33` }}>
+              {tab.emoji}
+            </div>
+            <div>
+              <h2 className="font-bold" style={{ color: tab.color }}>{tab.label}</h2>
+              <p className="text-xs font-mono opacity-50">{tab.file}</p>
+            </div>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex items-center gap-2">
             {editing ? (
               <>
-                <button
-                  onClick={() => setEditing(false)}
-                  className="px-4 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
-                >
+                <button onClick={() => setEditing(false)}
+                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+                  style={{ background: 'rgba(148,163,196,0.08)', color: 'rgba(148,163,196,0.7)', border: '1px solid rgba(99,120,255,0.1)' }}>
                   Cancel
                 </button>
-                <button
-                  onClick={save}
-                  disabled={saving}
-                  className="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : 'Save changes'}
+                <button onClick={save} disabled={saving}
+                  className="px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50 flex items-center gap-2"
+                  style={{ background: tab.gradient, color: '#fff', boxShadow: `0 4px 16px ${tab.color}33` }}>
+                  {saving && <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {saving ? 'Saving…' : 'Save changes'}
                 </button>
               </>
             ) : (
               <>
-                <button
-                  onClick={load}
-                  className="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
-                >
-                  Refresh
+                <button onClick={load}
+                  className="px-3 py-2 rounded-xl text-sm font-medium transition-all"
+                  style={{ background: 'rgba(148,163,196,0.06)', color: 'rgba(148,163,196,0.6)', border: '1px solid rgba(99,120,255,0.1)' }}>
+                  ↻ Refresh
                 </button>
-                <button
-                  onClick={startEdit}
-                  className="px-4 py-2 text-sm rounded-lg bg-gray-800 hover:bg-gray-900 text-white transition-colors"
-                >
-                  Edit
+                <button onClick={() => { setEditContent(memory[activeTab]); setEditing(true); }}
+                  className="px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                  style={{ background: `${tab.color}18`, color: tab.color, border: `1px solid ${tab.color}35` }}>
+                  ✏️ Edit
                 </button>
               </>
             )}
@@ -143,28 +141,37 @@ export default function MemoryPage() {
         {/* Body */}
         <div className="flex-1 overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-gray-400 animate-pulse text-sm">Loading...</div>
+            <div className="flex items-center justify-center h-full gap-3">
+              <div className="w-5 h-5 border-2 border-t-transparent animate-spin rounded-full"
+                style={{ borderColor: `${tab.color}33`, borderTopColor: tab.color }} />
+              <span className="text-sm" style={{ color: 'rgba(148,163,196,0.5)' }}>Loading…</span>
             </div>
           ) : error ? (
             <div className="flex items-center justify-center h-full">
-              <div className="text-red-500 text-sm">{error}</div>
+              <div className="px-4 py-3 rounded-xl text-sm" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>{error}</div>
             </div>
           ) : editing ? (
             <textarea
               value={editContent}
               onChange={e => setEditContent(e.target.value)}
-              className="w-full h-full px-8 py-6 text-sm font-mono resize-none focus:outline-none"
+              className="w-full h-full px-8 py-6 text-sm focus:outline-none resize-none"
+              style={{
+                background: 'transparent',
+                color: 'rgba(226,232,240,0.9)',
+                fontFamily: 'var(--font-geist-mono), monospace',
+                lineHeight: '1.7',
+              }}
             />
           ) : (
             <div className="overflow-y-auto h-full px-8 py-6">
               {memory[activeTab] ? (
-                <div className="prose prose-sm max-w-3xl">
+                <div className="prose prose-sm prose-invert max-w-3xl"
+                  style={{ '--tw-prose-body': 'rgba(226,232,240,0.85)', '--tw-prose-headings': '#e2e8f0' } as React.CSSProperties}>
                   <ReactMarkdown>{memory[activeTab]}</ReactMarkdown>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
-                  This memory file is empty.
+                <div className="flex items-center justify-center h-32 text-sm" style={{ color: 'rgba(148,163,196,0.4)' }}>
+                  This memory file is empty. Click Edit to add content.
                 </div>
               )}
             </div>
